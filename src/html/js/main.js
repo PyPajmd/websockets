@@ -7,6 +7,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Open the WebSocket connection and register event handlers.
   const websocket = new WebSocket("ws://localhost:8001/");
+  // capture event onOpen websocket and send init message to server
+  initGame(websocket)
   sendMoves(board, websocket);
   // response from websockets server
   receiveMoves(board, websocket);
@@ -39,6 +41,9 @@ function receiveMoves(board, websocket) {
   websocket.addEventListener("message", ({ data }) => {
     const event = JSON.parse(data);
     switch (event.type) {
+      case "init":
+        document.querySelector(".join").href = "?join=" + event.join;
+        break;
       case "play":
         // Update the UI with the move.
         playMove(board, event.player, event.column, event.row);
@@ -57,5 +62,22 @@ function receiveMoves(board, websocket) {
   });
 }
 
+function initGame(websocket) {
+  websocket.addEventListener("open", () => {
+    // Send an "init" event for the first player.
+    let event = { type: "init" };
+    // Parsing the page URL
+    const page_query_string = window.location.search
+    // Returns an object key-value
+    const params = new URLSearchParams(page_query_string);
+    if (params.has("join")) {
+      // Second player joins an existing game.
+      event.join = params.get("join");
+    } else {
+      // First player starts a new game.
+    }
+    websocket.send(JSON.stringify(event));
+  });
+}
 
 

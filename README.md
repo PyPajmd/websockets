@@ -34,3 +34,7 @@ async def handler(websocket):
         print(message)
 ```
 
+## Part 2
+
+We want to play from two different web browsers: 2 players 
+

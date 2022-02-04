@@ -2,91 +2,124 @@ import asyncio
 import websockets
 import json
 from connect4 import PLAYER1, PLAYER2, Connect4
+import secrets
+
+# Global dictionary to keep track of the games and partners
+JOIN = {}
 
 
-async def handler1(websocket):
-    try:
-        print(f"From {websocket.id} @ {websocket.remote_address} is connected")
-        while True:
-            try:
-                message = await websocket.recv()
-                print(f"From {websocket.id} @ {websocket.remote_address}: {message}")
-                if message == "end":
-                    # server closes the connection requested by the client
-                    await websocket.close()
-                    print("This code is upon receiving end message from client")
-            except websockets.exceptions.ConnectionClosedOK:
-                print(f"Client forced close ('end' or kill -3). Client ID: {websocket.id}")
-                break
-    finally:
-        print(f"This handler is done with {websocket.id}")
-
-
-# while loop and the try of handler_1 can be replaced with a common websockets pattern
-# async for - in websocket
-async def handler_2(websocket):
-    async for message in websocket:
-        print(message)
-
-# Checking the server can send messages to the js and js processes them
-async def handler_3(websocket):
-    for player, column, row in [
-        (PLAYER1, 3, 0),
-        (PLAYER2, 3, 1),
-        (PLAYER1, 4, 0),
-        (PLAYER2, 4, 1),
-        (PLAYER1, 2, 0),
-        (PLAYER2, 1, 0),
-        (PLAYER1, 5, 0),
-    ]:
-        event = {
-            "type": "play",
-            "player": player,
-            "column": column,
-            "row": row,
-        }
-        await websocket.send(json.dumps(event))
-        await asyncio.sleep(0.5)
+async def error(websocket, message):
     event = {
-        "type": "win",
-        "player": PLAYER1,
+        "type": "error",
+        "message": message,
     }
     await websocket.send(json.dumps(event))
 
 
-async def handler(websocket):
+async def start(websocket, path):
     game = Connect4()
-    player = PLAYER1
+    connected = {websocket}
+
+    join_key = secrets.token_urlsafe(12)
+    JOIN[join_key] = game, connected
+
+    # send back to the first connected player the url to communicate to the second player over the phone
+    try:
+        event = {
+            "type": "init",
+            "join": join_key
+        }
+        await websocket.send(json.dumps(event))
+        print(f"From {path} first player started game id: {id(game)}, url: {join_key}")
+        # while True:
+        #     message = await websocket.recv()
+        #     print(f"First player sent: {message}")
+        await play(websocket, game, PLAYER1, connected)
+    except Exception as e:
+        print(f"Something happened: {e}")
+    finally:
+        print("clearing the game")
+        print(f"PLAYER1 removing its socket")
+        connected.remove(websocket)
+        if join_key in JOIN:
+            del JOIN[join_key]
+        else:
+            print(f"PLAYER1 {join_key} already removed")
+
+
+async def join(websocket, join_key):
+    # Find the Connect Four game.
+    try:
+        game, connected = JOIN[join_key]
+    except KeyError:
+        await error(websocket, "Game not found.")
+        return
+
+    # Register to receive moves from this game.
+    connected.add(websocket)
+    try:
+
+        # Temporary - for testing.
+        print("second player joined game", id(game))
+        # async for message in websocket:
+        #     print("second player sent", message)
+        await play(websocket, game, PLAYER2, connected)
+
+    finally:
+        print(f"PLAYER2 removing its socket")
+        connected.remove(websocket)
+        if join_key in JOIN:
+            del JOIN[join_key]
+        else:
+            print(f"PLAYER2 {join_key} already removed")
+
+
+async def play(websocket, game, player, connected):
+
     async for json_message in websocket:
         message = json.loads(json_message)
-        print(message)
-        print(f"Playing {player}")
         if message["type"] == "play":
-            try:
-                column = message["column"]
-                row = game.play(player, column)
-                if game.last_player_won:
-                    event = {
-                        "type": "win",
-                        "player": player,
-                    }
-                else:
+            if len(connected) == 2:
+                try:
+                    row = game.play(player, column=message["column"])
                     event = {
                         "type": "play",
                         "player": player,
                         "row": row,
-                        "column": column
+                        "column": message["column"]
                     }
-                await websocket.send(json.dumps(event))
-            except RuntimeError as e:
+                    for w in connected:
+                        await w.send(json.dumps(event))
+                        if game.winner:
+                            event = {
+                                "type": "win",
+                                "player": player,
+                            }
+                            await w.send(json.dumps(event))
+                except RuntimeError as e:
+                    event = {
+                        "type": "error",
+                        "message": str(e)
+                    }
+                    await websocket.send(json.dumps(event))
+            else:
                 event = {
                     "type": "error",
-                    "message": str(e)
+                    "message": "Wait for a partner to play"
                 }
                 await websocket.send(json.dumps(event))
-            finally:
-                player = PLAYER2 if game.last_player == PLAYER1 else PLAYER1
-                print(f"next player {player}")
+
+
+async def handler(websocket, path):
+    print("A new player just joined")
+    message = await websocket.recv()
+    event = json.loads(message)
+    assert event["type"] == "init"
+    if "join" in event:
+        # second player joining the party
+        await join(websocket, event["join"])
+    else:
+        await start(websocket, path)
 
 
 
