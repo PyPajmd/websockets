@@ -36,5 +36,11 @@ async def handler(websocket):
 
 ## Part 2
 
+### Added second player
 We want to play from two different web browsers: 2 players 
+
+### Added a game watcher
+We want to be able to invite people to watch the game.
+To achieve this goal we are adding a watch key and use the more efficient **broadcasting pattern**
+
 

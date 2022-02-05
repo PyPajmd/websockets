@@ -60,3 +60,7 @@ class Connect4:
             self.winner = self.last_player
 
         return row
+
+    def get_moves(self):
+        # copy prevents the list from changing while being iterated.
+        return self.moves.copy()
