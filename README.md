@@ -55,11 +55,17 @@ To achieve this goal we are adding a watch key and use the more efficient **broa
 ```
 heroku login
 ```
-* create Heroku app
+* create Heroku petch-wbs
 ```
 heroku create <app_name>
+Creating ⬢ petch-wbs... done
+https://petch-wbs.herokuapp.com/ | https://git.heroku.com/petch-wbs.git
 ```
 * pushing code to heroku
 ```commandline
-git push heroku
+git push https://git.heroku.com/petch-wbs.git
+```
+* test websockets server
+```commandline
+python -m websockets wss://petch-wbs.herokuapp.com/
 ```
