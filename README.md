@@ -43,4 +43,23 @@ We want to play from two different web browsers: 2 players
 We want to be able to invite people to watch the game.
 To achieve this goal we are adding a watch key and use the more efficient **broadcasting pattern**
 
+## Part 3
+### Deploying to the web
+* Port needs to be an environment variable
+* We need to catch the SIGTERM signal
 
+### Deploying the websocket server to Heroku
+* we create a Procfile to start the web app
+* install Heroku cli sudo snap install heroku --classic
+* start Heroku
+```
+heroku login
+```
+* create Heroku app
+```
+heroku create <app_name>
+```
+* pushing code to heroku
+```commandline
+git push heroku
+```
