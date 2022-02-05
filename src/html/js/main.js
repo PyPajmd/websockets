@@ -6,7 +6,7 @@ window.addEventListener("DOMContentLoaded", () => {
   createBoard(board);
 
   // Open the WebSocket connection and register event handlers.
-  const websocket = new WebSocket("ws://localhost:8001/");
+  const websocket = new WebSocket(getWebSocketServer());
   // capture event onOpen websocket and send init message to server
   initGame(websocket)
   sendMoves(board, websocket);
@@ -15,6 +15,17 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // fleshing out the body of the main js code
+
+function getWebSocketServer() {
+  if (window.location.host === "pajmd.github.io") {
+    return "wss://ptech-wbs.herokuapp.com/";
+  } else if (window.location.host === "localhost:8000") {
+    return "ws://localhost:8001/";
+  } else {
+    throw new Error(`Unsupported host: ${window.location.host}`);
+  }
+}
+
 
 // Sending a move to the server
 function sendMoves(board, websocket) {

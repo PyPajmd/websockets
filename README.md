@@ -69,3 +69,11 @@ git push https://git.heroku.com/petch-wbs.git
 ```commandline
 python -m websockets wss://petch-wbs.herokuapp.com/
 ```
+* change main.js to route the open of the websocket according to the path of the HTTP server.
+* 
+#### Heroku local testing
+
+```commandline
+heroku local&
+heroku logs -a petch-wbs
+```
