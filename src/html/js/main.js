@@ -18,7 +18,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 function getWebSocketServer() {
   if (window.location.host === "pypajmd.github.io") {
-    return "wss://ptech-wbs.herokuapp.com/";
+    return "wss://petch-wbs.herokuapp.com/";
   } else if (window.location.host === "localhost:8000") {
     return "ws://localhost:8001/";
   } else {

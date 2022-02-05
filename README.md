@@ -75,5 +75,5 @@ python -m websockets wss://petch-wbs.herokuapp.com/
 
 ```commandline
 heroku local&
-heroku logs -a petch-wbs
+heroku logs --tail -a petch-wbs
 ```
