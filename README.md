@@ -70,7 +70,12 @@ git push https://git.heroku.com/petch-wbs.git
 python -m websockets wss://petch-wbs.herokuapp.com/
 ```
 * change main.js to route the open of the websocket according to the path of the HTTP server.
-* 
+* set up the GitHub HTTP server:
+  * Go to the Settings tab of the GitHub repository
+  * Select Pages in the menu. 
+  * Select the main branch as source and click Save.
+  * To the URL suggested must be appended the path of the index.html file.
+  
 #### Heroku local testing
 
 ```commandline
