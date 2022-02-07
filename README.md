@@ -70,15 +70,18 @@ git push https://git.heroku.com/petch-wbs.git
 python -m websockets wss://petch-wbs.herokuapp.com/
 ```
 * change main.js to route the open of the websocket according to the path of the HTTP server.
-* set up the GitHub HTTP server:
+* set up the [GitHub static HTTP server](https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages):
   * Go to the Settings tab of the GitHub repository
   * Select Pages in the menu. 
-  * Select the main branch as source and click Save.
+  * Select the main branch as source and click Save to publish the site or **None** to unpublish it.
   * To the URL suggested must be appended the path of the index.html file.
   
-#### Heroku local testing
+#### (Heroku commands)[https://devcenter.heroku.com/articles/getting-started-with-python#scale-the-app]
 
 ```commandline
-heroku local&
+heroku local&  # for local testing
 heroku logs --tail -a petch-wbs
+heroku ps -a petch-wbs # show quotas
+heroku ps:scale web=0 -a petch-wbs # scales down to 0 the number of dynos running in effect shutting it down
+heroku ps:scale web=1 -a petch-wbs # restart the app
 ```
